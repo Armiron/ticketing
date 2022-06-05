@@ -1,4 +1,4 @@
-import * as request from 'supertest';
+import request from 'supertest';
 import { app } from '../../app';
 
 it('fails when a email that does not exist is supplied', async () => {
