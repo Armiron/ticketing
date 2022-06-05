@@ -1,0 +1,72 @@
+import axios from 'axios';
+import buildClient from '../api/build-client';
+
+const LandingPage = ({ currentUser }) => {
+  //console.log('I am in the component', color);
+  // Browser handles all that stuff about rounting
+  //axios.get('/api/users/currentuser'); //serverside doesnt do much
+  console.log(currentUser);
+  return currentUser ? <h1>You are signed in</h1> : <h1>you aint signed in</h1>;
+};
+
+// use request hooks are used inside components cant be used in server functions
+// Next.js call it automatically to pass it to component and is on serverside rendering
+// To reach nginx we access another namespace (nginX in this case cause is its own namespace),
+// then the service inside that namespace  and to do that we use a complicated url
+// COULD ALSO MAKE A REQUEST TO THE SERVICE WITH HTTP http://auth-srv/api/users/currentuser cause we are in the same namespace
+// kubectl get namespaces / kubectl get services -n ingress-nginx
+// http://SERVICE.NAMESPACE.svc.cluster.local
+// http://ingress-nginx.ingress-nginx-controller.svc.cluster.local
+
+//getInitialProps gets executed on the server when link... soo refresh clicklink type url /
+//navigation inside the app pages triggers it inside the app
+LandingPage.getInitialProps = async (/*{ req }*/ context) => {
+  // console.log(req.headers);
+  // //console.log('I am on the server');
+  // // const response = await axios.get('/api/users/currentuser');
+
+  // // return response.data;
+  // // Instead of this there are 2 functions defined on next.js latest version after this course
+  // // that i can use later on to make the app more performant and stuff
+  // // After doing this app next.js is next ..ha ha.. on the list of shit i got to learn
+  // if (typeof window === 'undefined') {
+  //   // We are on server
+  //   // request to complicated url
+  //   console.log('i was executed');
+  //   const response = await axios.get(
+  //     'http://ingress-nginx-controller.ingress-nginx.svc.cluster.local/api/users/currentuser',
+  //     {
+  //       // headers: {
+  //       //   Host: 'ticketing.dev',
+  //       // },
+  //       headers: req.headers,
+  //     }
+  //   );
+  //   return response.data;
+  // } else {
+  //   // We are on browser
+  //   // request can be made with base url
+  //   const response = await axios.get('/api/users/currentuser');
+  //   return response.data;
+  // }
+
+  // return {};
+  // context contains req thats destructured and since is destructured on the helper function too
+  // we can directly pass it as an argument instead of {req}
+  // buildClient returns only axios instance and we got to make the method to endpoint
+  console.log('LANDING PAGE');
+  const client = buildClient(context);
+  const { data } = await client.get('/api/users/currentuser');
+  return data;
+};
+
+// export async function getStaticProps(context) {
+//   const response = await axios.get('/api/users/currentuser');
+//   return {
+//     props: {
+//       data: response.data,
+//     },
+//   };
+// }
+
+export default LandingPage;
