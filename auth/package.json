@@ -2,15 +2,22 @@
   "name": "auth",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node-dev src/index.ts",
-    "test": "jest --watchAll --no-cache",
-    "test:ci": "jest"
+    "start": "node --env-file-if-exists=.env --watch src/index.ts",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll --no-cache",
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --no-cache",
+    "test:e2e": "node e2e/e2e.test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "jest": {
-    "preset": "ts-jest",
     "testEnvironment": "node",
+    "transform": {},
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/e2e/"
+    ],
     "setupFilesAfterEnv": [
       "./src/test/setup.ts"
     ]
@@ -18,26 +25,36 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "overrides": {
+    "@armitickets/common": {
+      "@types/express": "^5.0.6"
+    }
+  },
   "dependencies": {
     "@armitickets/common": "^1.0.14",
-    "@types/cookie-session": "^2.0.44",
-    "@types/express": "^4.17.13",
-    "@types/jsonwebtoken": "^8.5.8",
-    "cookie-session": "^2.0.0",
-    "express": "^4.17.3",
-    "express-async-errors": "^3.1.1",
-    "express-validator": "^6.14.0",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.2.8",
-    "ts-node-dev": "^1.1.8",
-    "typescript": "4.6.3"
+    "argon2": "^0.45.2",
+    "cookie-session": "^2.1.1",
+    "express": "^5.1.0",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.12.0",
+    "redis": "^6.3.1"
   },
   "devDependencies": {
-    "@types/jest": "^27.4.1",
-    "@types/supertest": "^2.0.12",
-    "jest": "^27.5.1",
-    "mongodb-memory-server": "^8.4.2",
-    "supertest": "^6.2.2",
-    "ts-jest": "^27.1.4"
+    "@jest/globals": "^30.2.0",
+    "@types/cookie-session": "^2.0.49",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.0.0",
+    "@types/supertest": "^7.2.1",
+    "jest": "^30.5.2",
+    "mongodb-memory-server": "^11.3.0",
+    "supertest": "^7.3.2",
+    "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "argon2@0.45.2": true,
+    "mongodb-memory-server@11.3.0": true
   }
 }

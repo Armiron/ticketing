@@ -1,2 +1,10 @@
-node_modules
-build
+node_modules/
+
+# RSA JWT key pair (generate via keytool — see commands at the top of
+# auth/src/middlewares/jwt.ts)
+auth/keys/
+
+# Local environment files (commit .env.example, never the real .env)
+.env
+.env.local
+.env.*.local

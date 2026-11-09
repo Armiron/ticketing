@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -NoProfile -Command \"Stop-Process -Id 16988 -Force\")",
+      "Bash(node --env-file-if-exists=.env src/index.ts)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/users/currentuser)",
+      "Bash(break)",
+      "Bash(powershell.exe -NoProfile -Command 'Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Get-Process -Id $_ | Select-Object Id, ProcessName, StartTime }')",
+      "Bash(powershell.exe -NoProfile -Command \"Get-CimInstance Win32_Process -Filter \\\\\"Name='node.exe'\\\\\" | Select-Object ProcessId, CreationDate, CommandLine | Format-List\")",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

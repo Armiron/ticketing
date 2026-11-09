@@ -1,5 +1,5 @@
-import * as mongoose from 'mongoose';
-import Password from '../services/password';
+import mongoose from 'mongoose';
+import Password from '../services/password.ts';
 
 // An interface that describes the properties
 // that are required to create a user
@@ -21,6 +21,8 @@ interface UserModel extends mongoose.Model<UserDocument> {
 interface UserDocument extends mongoose.Document {
   email: string;
   password: string;
+  // Mongoose's built-in `id` virtual (string form of _id)
+  id: string;
 }
 
 const userSchema = new mongoose.Schema(
@@ -28,6 +30,9 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      // Enforce uniqueness at the DB level too — the findOne check in the
+      // route has a race window on concurrent signups, this closes it.
+      unique: true,
     },
     password: {
       type: String,
@@ -38,17 +43,22 @@ const userSchema = new mongoose.Schema(
     toJSON: {
       //Direct changes to that object
       transform(doc, ret) {
-        ret.id = ret._id;
-        delete ret.password; //Remove keyword NORMAL JS i didnt know
-        delete ret.__v; //versionKey booleanto kinda do the same
-        delete ret._id;
+        // Mongoose 9 types `ret` strictly, so copy to a loose record before
+        // mutating the keys.
+        const output = { ...ret } as Record<string, unknown>;
+        output.id = output._id;
+        delete output.password; //Remove keyword NORMAL JS i didnt know
+        delete output.__v; //versionKey booleanto kinda do the same
+        delete output._id;
+        return output;
       },
     },
   }
 );
 
-// Uses middleware function so u have to call done when you finish
-userSchema.pre('save', async function (done) {
+// Mongoose 9 middleware: an async function is supported directly, so no
+// `done` callback is needed (passing one was a leftover from old API).
+userSchema.pre('save', async function () {
   // this is the actual use thats being saved so we need it
   // When we modify a user document it will always run this function and
   // we don't need to hash always the password unless is changed
@@ -56,8 +66,6 @@ userSchema.pre('save', async function (done) {
     const hashedPassword = await Password.toHash(this.get('password'));
     this.set('password', hashedPassword);
   }
-
-  done();
 });
 
 userSchema.statics.build = (attrs: UserAttrs) => {

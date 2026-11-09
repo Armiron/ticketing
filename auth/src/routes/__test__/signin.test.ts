@@ -1,5 +1,6 @@
+import { it, expect } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../app';
+import { app } from '../../app.ts';
 
 it('fails when a email that does not exist is supplied', async () => {
   await request(app)

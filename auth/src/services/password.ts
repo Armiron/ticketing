@@ -1,19 +1,20 @@
-import { scrypt, randomBytes } from 'crypto';
-import { promisify } from 'util';
-
-const scryptAsync = promisify(scrypt);
+import argon2 from 'argon2';
 
 export default class Password {
   static async toHash(password: string) {
-    const salt = randomBytes(8).toString('hex');
-    const buffer = (await scryptAsync(password, salt, 64)) as Buffer;
-
-    return `${buffer.toString('hex')}.${salt}`;
+    return await argon2.hash(password, {
+      // Memory cost in KB (64 MB default)
+      memoryCost: 65536,
+      // Time cost (iterations)
+      timeCost: 3,
+      // Parallelism (number of threads)
+      parallelism: 1,
+      // Hash length in bytes
+      hashLength: 32
+    });
   }
 
   static async compare(storedPassword: string, suppliedPassword: string) {
-    const [hashedPassword, salt] = storedPassword.split('.');
-    const buffer = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
-    return buffer.toString('hex') === hashedPassword;
+    return await argon2.verify(storedPassword, suppliedPassword);
   }
 }

@@ -1,5 +1,6 @@
+import { it, expect } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../app';
+import { app } from '../../app.ts';
 
 it('returns a 201 on successfull singup', async () => {
   return request(app)

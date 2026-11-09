@@ -1,16 +1,13 @@
-import * as express from 'express';
+import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { sign } from 'jsonwebtoken';
-// import BadRequestError from '../errors/bad-request-error';
-// import RequestValidationError from '../errors/request-validation-error';
-// import { validateRequest } from '../middlewares/validate-request';
 
 import { BadRequestError } from '@armitickets/common';
-//import RequestValidationError from '../errors/request-validation-error';
 import { validateRequest } from '@armitickets/common';
 
-import User from '../models/user';
-import Password from '../services/password';
+import User from '../models/user.ts';
+import Password from '../services/password.ts';
+import { rateLimit } from '../middlewares/rate-limit.ts';
+import { signToken } from '../middlewares/jwt.ts';
 
 const router = express.Router();
 
@@ -20,10 +17,12 @@ router.post(
     body('email').isEmail().withMessage('Email not valid'),
     body('password')
       .trim()
-      .notEmpty()
-      .withMessage('You must enter your password'),
+      .isLength({ min: 4, max: 20 })
+      .withMessage('Password must be between 4 and 20 characters'),
   ],
   validateRequest,
+  // Rate limit to 5 requests per 15 minutes for signin
+  rateLimit(5, 15 * 60 * 1000),
   async (req: express.Request, res: express.Response) => {
     // Moved Validation into middleware
     // const errors = validationResult(req);
@@ -44,14 +43,12 @@ router.post(
       throw new BadRequestError('Invalid credentials');
     }
 
-    const userJWT = sign(
-      {
-        id: existingUser.id,
-        email: existingUser.email,
-      },
-      process.env
-        .JWT_KEY! /*Secret Key !exclamation after and we teel it we checked*/
-    );
+    // Sign with the RSA private key (RS256) — throws a helpful error
+    // if the keys in auth/keys/ haven't been generated yet
+    const userJWT = signToken({
+      id: existingUser.id,
+      email: existingUser.email,
+    });
 
     // Store it in session object
     // Types issue

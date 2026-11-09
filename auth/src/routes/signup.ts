@@ -1,12 +1,13 @@
-import * as express from 'express';
+import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { sign } from 'jsonwebtoken';
-import User from '../models/user';
+import User from '../models/user.ts';
 // import DatabaseConnectionError from '../errors/database-connection-error';
 // import RequestValidationError from '../errors/request-validation-error';
 // import BadRequestError from '../errors/bad-request-error';
 // import { validateRequest } from '../middlewares/validate-request';
 import { validateRequest, BadRequestError } from '@armitickets/common';
+import { rateLimit } from '../middlewares/rate-limit.ts';
+import { signToken } from '../middlewares/jwt.ts';
 
 const router = express.Router();
 
@@ -20,6 +21,8 @@ router.post(
       .withMessage('Password must be between 4 and 20 characters'),
   ],
   validateRequest,
+  // Rate limit to 5 requests per 15 minutes for signup
+  rateLimit(5, 15 * 60 * 1000, 'signup_rate_limit'),
   async (req: express.Request, res: express.Response) => {
     // Moved request validation into middleware
     // const errors = validationResult(req);
@@ -54,28 +57,34 @@ router.post(
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      //console.log('Email in use');
-      //return res.send({});
       throw new BadRequestError('Email already in use');
     }
 
     const user = User.build({ email, password });
-    await user.save();
+    try {
+      await user.save();
+    } catch (error) {
+      // Concurrent signup of the same email slips past the findOne check
+      // above; the unique index turns it into a Mongo duplicate-key error
+      // (code 11000). Only the EMAIL index maps to this message — any other
+      // unique-index violation (e.g. a stale index on another field) must
+      // surface as a real server error, not be misreported as a duplicate.
+      const mongoError = error as {
+        code?: number;
+        keyPattern?: Record<string, unknown>;
+      };
+      if (mongoError?.code === 11000 && mongoError.keyPattern?.email) {
+        throw new BadRequestError('Email already in use');
+      }
+      throw error;
+    }
 
-    // Generate JWT
-    // Should know immediatly not later on
-    // if (!process.env.JWT_KEY) {
-    //   throw new Error('JWT_KEY not specified');
-    // }
-
-    const userJWT = sign(
-      {
-        id: user.id,
-        email: user.email,
-      },
-      process.env
-        .JWT_KEY! /*Secret Key !exclamation after and we teel it we checked*/
-    );
+    // Sign with the RSA private key (RS256) — throws a helpful error
+    // if the keys in auth/keys/ haven't been generated yet
+    const userJWT = signToken({
+      id: user.id,
+      email: user.email,
+    });
 
     // Store it in session object
     // Types issue
@@ -85,7 +94,7 @@ router.post(
     };
 
     res.status(201).send(user); //password in a hashed format
-  }
+  },
 );
 
 export { router as signupRouter };
