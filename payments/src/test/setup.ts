@@ -1,22 +1,27 @@
 import request from 'supertest';
-import jwt from 'jsonwebtoken';
+import type { IncomingHttpHeaders } from 'http';
+import { signToken } from '@armitickets/common';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { app } from '../app';
 
 declare global {
-  function signin(id?: string): object;
+  function signin(id?: string): IncomingHttpHeaders;
 }
 
 jest.mock('../nats-wrapper');
 
-process.env.STRIPE_KEY =
-  'sk_test_51L4o3DIE6nQ8t94Ydgro23SeenKWJOCMISy9o2JcJntAJ0XwAfMAu9doFBTrOdl0AgHrQFmBu3fBCOqV0eN3gC4c00rwXYMVkg';
+// STRIPE_KEY is loaded from payments/.env by src/test/load-env.ts (jest
+// "setupFiles") — keep the real key out of source code and git history.
+if (!process.env.STRIPE_KEY) {
+  throw new Error(
+    'STRIPE_KEY is not set — copy payments/.env.example to payments/.env and add your Stripe test key'
+  );
+}
 
 let mongo: any;
 
 beforeAll(async () => {
-  process.env.JWT_KEY = 'qwer';
   mongo = await MongoMemoryServer.create();
   const mongoUri = await mongo.getUri();
 
@@ -44,7 +49,7 @@ global.signin = (id?: string) => {
     email: 'test@test.com',
   };
   // Create the JWT!
-  const token = jwt.sign(payload, process.env.JWT_KEY!);
+  const token = signToken(payload);
   // Build session object {jwt: MY_JWT}
   const session = { jwt: token };
   // Turn session into JSON

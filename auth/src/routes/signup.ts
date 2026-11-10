@@ -7,7 +7,7 @@ import User from '../models/user.ts';
 // import { validateRequest } from '../middlewares/validate-request';
 import { validateRequest, BadRequestError } from '@armitickets/common';
 import { rateLimit } from '../middlewares/rate-limit.ts';
-import { signToken } from '../middlewares/jwt.ts';
+import { signToken } from '@armitickets/common';
 
 const router = express.Router();
 
@@ -80,7 +80,7 @@ router.post(
     }
 
     // Sign with the RSA private key (RS256) — throws a helpful error
-    // if the keys in auth/keys/ haven't been generated yet
+    // if the RSA keys (repo-root keys/) have not been generated yet - see common/README.md
     const userJWT = signToken({
       id: user.id,
       email: user.email,

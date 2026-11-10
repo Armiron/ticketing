@@ -5,20 +5,18 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node-dev src/index.ts",
-    "test": "jest --watchAll --no-cache"
+    "test": "jest --watchAll --no-cache",
+    "test:ci": "jest --passWithNoTests"
   },
   "jest": {
     "preset": "ts-jest",
-    "testEnvironment": "node",
-    "setupFilesAfterEnv": [
-      "./src/test/setup.ts"
-    ]
+    "testEnvironment": "node"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@armitickets/common": "^1.0.14",
+    "@armitickets/common": "*",
     "@types/bull": "^3.15.8",
     "bull": "^4.8.2",
     "ts-node-dev": "^1.1.8",

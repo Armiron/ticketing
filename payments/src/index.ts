@@ -4,10 +4,11 @@ import { natsWrapper } from './nats-wrapper';
 import { OrderCancelledListener } from './events/listeners/order-cancelled-listener';
 import { OrderCreatedListener } from './events/listeners/order-created-listener';
 
+import { ensureKeys } from '@armitickets/common';
+
 const start = async () => {
-  if (!process.env.JWT_KEY) {
-    throw new Error('JWT_KEY not specified');
-  }
+  // Fail fast with a helpful message if the RSA keys are missing (common/README.md)
+  ensureKeys();
 
   if (!process.env.MONGO_URI) {
     throw new Error('MONGO_URI not specified');

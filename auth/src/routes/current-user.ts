@@ -1,6 +1,6 @@
 import express from 'express';
-// Local RS256 middleware (was @armitickets/common's symmetric-key version)
-import { currentUser } from '../middlewares/jwt.ts';
+// RS256 currentUser middleware from @armitickets/common (shared by all services)
+import { currentUser } from '@armitickets/common';
 
 const router = express.Router();
 

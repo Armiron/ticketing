@@ -1,11 +1,12 @@
 import request from 'supertest';
-import jwt from 'jsonwebtoken';
+import type { IncomingHttpHeaders } from 'http';
+import { signToken } from '@armitickets/common';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { app } from '../app';
 
 declare global {
-  function signin(): object;
+  function signin(): IncomingHttpHeaders;
 }
 
 jest.mock('../nats-wrapper');
@@ -13,7 +14,6 @@ jest.mock('../nats-wrapper');
 let mongo: any;
 
 beforeAll(async () => {
-  process.env.JWT_KEY = 'qwer';
   mongo = await MongoMemoryServer.create();
   const mongoUri = await mongo.getUri();
 
@@ -42,7 +42,7 @@ global.signin = () => {
     email: 'test@test.com',
   };
   // Create the JWT!
-  const token = jwt.sign(payload, process.env.JWT_KEY!);
+  const token = signToken(payload);
   // Build session object {jwt: MY_JWT}
   const session = { jwt: token };
   // Turn session into JSON

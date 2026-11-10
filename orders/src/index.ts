@@ -6,10 +6,11 @@ import { TicketUpdatedListener } from './events/listeners/ticket-updated-listene
 import { ExpirationCompleteListener } from './events/listeners/expiration-complete-listener';
 import { PaymentCreatedListener } from './events/listeners/payment-created-listener';
 
+import { ensureKeys } from '@armitickets/common';
+
 const start = async () => {
-  if (!process.env.JWT_KEY) {
-    throw new Error('JWT_KEY not specified');
-  }
+  // Fail fast with a helpful message if the RSA keys are missing (common/README.md)
+  ensureKeys();
 
   if (!process.env.MONGO_URI) {
     throw new Error('MONGO_URI not specified');

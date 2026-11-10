@@ -1,0 +1,13 @@
+{
+  "name": "ticketing",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "common",
+    "auth",
+    "tickets",
+    "orders",
+    "payments",
+    "expiration"
+  ]
+}

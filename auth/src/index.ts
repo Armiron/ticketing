@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { app } from './app.ts';
 import { redisClient } from './middlewares/rate-limit.ts';
-import { ensureKeys } from './middlewares/jwt.ts';
+import { ensureKeys } from '@armitickets/common';
 
 const start = async () => {
   console.log('Starting up...');
